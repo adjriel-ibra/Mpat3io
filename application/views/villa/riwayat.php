@@ -271,7 +271,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-mDmBC0zQYFUZsnrt"></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="client-key">//masukan client-key disini</script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
