@@ -149,7 +149,7 @@ class Dashboard extends CI_Controller {
     public function get_snap_token() {
         require_once APPPATH . 'libraries/Midtrans.php';
 
-        \Midtrans\Config::$serverKey = getenv('Midtrans server key here');
+        $serverKey = ''; // Ganti dengan server key Midtrans Anda
         \Midtrans\Config::$isProduction = false;
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
