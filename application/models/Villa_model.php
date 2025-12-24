@@ -101,5 +101,9 @@ class Villa_model extends CI_Model {
         $this->db->where('id_pesanan', $id_pemesanan);
         return $this->db->update('pesanan', $data); 
     }
+    public function updateVilla($id_villa, $data) {
+        $this->db->where('id_villa', $id_villa);
+        return $this->db->update('villa', $data);
+    }
 }
 ?>

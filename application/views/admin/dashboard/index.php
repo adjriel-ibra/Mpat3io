@@ -136,7 +136,7 @@
         <?php if (!empty($villa)) : ?>
             <?php foreach($villa as $villa_detail) : ?>
                 <div class="col">
-                    <a href="#" class="card-link">
+                    <a href="<?= base_url('admin/dashboard/edit/'. $villa_detail['id_villa'])?>" class="card-link">
                         <div class="card card-villa p-1" style="background-color:#FFE8D6;">
                             <img src="<?= base_url($villa_detail['gambar']); ?>" class="card-img-top">
                             <div class="card-body p-3">

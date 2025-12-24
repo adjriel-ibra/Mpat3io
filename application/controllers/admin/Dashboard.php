@@ -97,7 +97,6 @@ class Dashboard extends CI_Controller
     {
         $foto = null;
 
-        // Cek apakah ada file yang diupload
         if (!empty($_FILES['gambar']['name'])) {
 
             $config['upload_path'] = FCPATH . 'asset/Uploads/';
@@ -138,5 +137,58 @@ class Dashboard extends CI_Controller
         $this->session->set_flashdata('pesan_sukses', 'Data villa berhasil disimpan');
         redirect('admin/dashboard');
     }
+    public function edit($id_villa)
+    {
+        $data['villa'] = $this->Villa_model->get_villa_by_id($id_villa);
+        $this->load->view('admin/dashboard/edit_villa', $data);
+        $this->load->view('admin/temp/footer_mitra');
+    }
 
+    public function update_villa()
+    {
+        $id_villa = $this->input->post('id_villa');
+
+        $foto = null;
+
+        if (!empty($_FILES['gambar']['name'])) {
+
+            $config['upload_path'] = FCPATH . 'asset/Uploads/';
+            $config['allowed_types'] = 'jpg|jpeg|png';
+            $config['max_size'] = 2048; // 2MB
+            $config['encrypt_name'] = TRUE; // nama file acak (aman)
+
+            $this->load->library('upload', $config);
+
+            if (!$this->upload->do_upload('gambar')) {
+                $this->session->set_flashdata(
+                    'pesan_error',
+                    $this->upload->display_errors()
+                );
+                redirect('admin/dashboard/tambah');
+                return;
+            }
+
+            // Ambil data upload
+            $uploadData = $this->upload->data();
+
+            // SIMPAN RELATIVE PATH + FILENAME
+            $foto = 'asset/Uploads/' . $uploadData['file_name'];
+        } else {
+            $error = $this->upload->display_errors();
+            $this->session->set_flashdata('error', $error);
+            redirect('admin/dashboard/edit/' . $id_villa);
+            return;
+        }
+        $data = [
+            'nama_villa' => $this->input->post('nama_villa'),
+            'harga' => $this->input->post('harga'),
+            'deskripsi' => $this->input->post('deskripsi'),
+            'gambar' => $foto,
+            'status_villa' => $this->input->post('status_villa'),
+        ];
+
+        $this->Villa_model->updateVilla($id_villa, $data);
+
+        redirect('admin/dashboard');
+    }
 }
