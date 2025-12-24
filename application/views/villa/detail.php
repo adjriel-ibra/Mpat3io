@@ -199,26 +199,31 @@
         <div class="container p-3 mb-5">
             <div class="text-center mb-4">
                 <hr class="w-25 mx-auto">
-                <span class="text-muted small text-uppercase fw-bold">Akomodasi Lain dari</span><br>
-                <span style="font-weight: 700; font-size: 1.2rem; color: #333;"><?= $villa['nama_mitra'] ?></span>
+                <span class="text-muted small text-uppercase fw-bold">Rekomendasi Serupa</span><br>
+                <span style="font-weight: 700; font-size: 1.2rem; color: #333;">Berdasarkan Fitur & Suasana</span>
             </div>
 
             <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                <?php foreach ($villa_mitra as $villa_item): ?>
-                <?php if ($villa_item['id_villa'] != $villa['id_villa']): ?>
-                    <div class="col">
-                        <a href="<?= base_url('user/dashboard/detail/') . $villa_item['id_villa'] ?>" class="text-decoration-none text-dark">
-                            <div class="card card-villa h-100 shadow-sm border-0">
-                                <img src="<?= base_url($villa_item['gambar']);?>" class="card-img-top">
-                                <div class="p-3">
-                                    <div class="fw-bold text-truncate small mb-1"><?= $villa_item['nama_villa'] ?></div>
-                                    <div class="fw-bold" style="color: #FF6B35;">Rp <?= number_format($villa_item['harga'], 0, ',', '.') ?></div>
+                <?php if(!empty($rekomendasi_villa)) : ?>
+                    <?php foreach ($rekomendasi_villa as $rek): ?>
+                        <div class="col">
+                            <a href="<?= base_url('user/dashboard/detail/') . $rek['id_villa'] ?>" class="text-decoration-none text-dark">
+                                <div class="card card-villa h-100 shadow-sm border-0">
+                                    <img src="<?= base_url($rek['gambar']);?>" class="card-img-top">
+                                    <div class="p-3">
+                                        <div class="fw-bold text-truncate small mb-1"><?= $rek['nama_villa'] ?></div>
+                                        <div class="fw-bold" style="color: #FF6B35;">Rp <?= number_format($rek['harga'], 0, ',', '.') ?></div>
+                                        
+                                        </div>
                                 </div>
-                            </div>
-                        </a>
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <div class="col-12 text-center text-muted">
+                        <small>Belum ada rekomendasi serupa saat ini.</small>
                     </div>
                 <?php endif; ?>
-                <?php endforeach; ?>
             </div>
         </div>
     </main>

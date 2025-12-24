@@ -68,11 +68,66 @@ class Dashboard extends CI_Controller {
             redirect('index/lp1');
             exit; 
         }
+    
         $data['villa'] = $this->Villa_model->get_by_id($id);
-        $id_mitra = $data['villa']['id_mitra'];
-        $data['villa_mitra'] = $this->Villa_model->get_by_mitra($id_mitra);
+        
+        if (empty($data['villa'])) {
+            show_404();
+        }
+        $deskripsi_target = $data['villa']['deskripsi'];
+    
+        $kandidat_villa = $this->Villa_model->get_all_except($id);
+        
+        $rekomendasi = [];
+    
+        foreach ($kandidat_villa as $item) {
+            $deskripsi_banding = $item['deskripsi'];
+            
+            $skor = $this->_hitung_cosine($deskripsi_target, $deskripsi_banding);
+            
+            $item['nilai_kemiripan'] = $skor;
+            $rekomendasi[] = $item;
+        }
+    
+        usort($rekomendasi, function($a, $b) {
+            return $b['nilai_kemiripan'] <=> $a['nilai_kemiripan'];
+        });
+    
+        $data['rekomendasi_villa'] = array_slice($rekomendasi, 0, 4);
         $this->load->view('villa/detail', $data);
         $this->load->view('user/temp/footer');
+    }
+    
+    private function _hitung_cosine($teks1, $teks2) {
+        $clean1 = strtolower(preg_replace("/[^a-zA-Z0-9\s]/", "", $teks1));
+        $clean2 = strtolower(preg_replace("/[^a-zA-Z0-9\s]/", "", $teks2));
+    
+        $arr1 = explode(" ", $clean1);
+        $arr2 = explode(" ", $clean2);
+    
+        $arr1 = array_filter($arr1);
+        $arr2 = array_filter($arr2);
+    
+        $kata_sama = 0;
+        
+        $unique1 = array_unique($arr1);
+        $unique2 = array_unique($arr2);
+    
+        foreach ($unique2 as $kata) {
+            if (in_array($kata, $unique1)) {
+                $kata_sama++;
+            }
+        }
+    
+        $jumlah_a = count($arr1);
+        $jumlah_b = count($arr2);
+    
+        if ($jumlah_a == 0 || $jumlah_b == 0) {
+            return 0;
+        }
+    
+        $akar_ab = sqrt($jumlah_a * $jumlah_b);
+        return $kata_sama / $akar_ab;
     }
     public function detail_pesanan($id_pesanan){
         if (!$this->session->userdata('penyewa_nama')) {

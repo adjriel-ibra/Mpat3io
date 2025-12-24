@@ -5,6 +5,10 @@ class Villa_model extends CI_Model {
     public function get_villa() {
         return $this->db->get('villa')->result_array();
     }
+    public function get_all_except($id_kecuali) {
+        $this->db->where('id_villa !=', $id_kecuali);
+        return $this->db->get('villa')->result_array();
+    }
     public function get_mitra_by_id($id) {
         return $this->db->where('id_mitra',$id)->get('mitra')->row();
     }
