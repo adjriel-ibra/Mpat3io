@@ -1,25 +1,29 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Dashboard extends CI_Controller {
-    public function __construct() {
+class Dashboard extends CI_Controller
+{
+    public function __construct()
+    {
         parent::__construct();
         $this->load->model('Villa_model');
         $this->load->model('User_model');
     }
-    
-    public function akun(){
+
+    public function akun()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $id = $this->session->userdata('penyewa_id');
         $data['penyewa'] = $this->Villa_model->get_penyewa_by_id($id);
-        $this->load->view('user/dashboard/akun',$data);
+        $this->load->view('user/dashboard/akun', $data);
         $this->load->view('user/temp/footer');
-        
+
     }
-    public function detail_akun(){
+    public function detail_akun()
+    {
         $id = $this->session->userdata('penyewa_id');
         $data['penyewa'] = $this->Villa_model->get_penyewa_by_id($id);
         $this->load->view('user/dashboard/detail_akun', $data);
@@ -39,130 +43,157 @@ class Dashboard extends CI_Controller {
         $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Profil berhasil diperbarui!</div>');
         redirect('user/dashboard/akun');
     }
-    public function faq(){
+    public function faq()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $this->load->view('user/dashboard/faq');
         $this->load->view('user/temp/footer');
     }
-    public function sk(){
+    public function sk()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $this->load->view('user/dashboard/sk');
         $this->load->view('user/temp/footer');
     }
-    public function contact(){
+    public function contact()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $this->load->view('user/dashboard/contact');
         $this->load->view('user/temp/footer');
     }
-    public function kebijakan(){
+    public function kebijakan()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $this->load->view('user/dashboard/kebijakan');
         $this->load->view('user/temp/footer');
     }
-    public function index(){
+    public function index()
+    {
         $data['villa'] = $this->Villa_model->get_villa();
-        $this->load->view('user/dashboard/index',$data);
+        $this->load->view('user/dashboard/index', $data);
         $this->load->view('user/temp/footer');
     }
-    public function riwayat(){
+    public function finish_payment($id_pesanan)
+    {
+        $sukses = $this->Villa_model->update_status_pesanan($id_pesanan);
+        if ($sukses) {
+            $this->session->set_flashdata(
+                'pesan',
+                '<div class="alert alert-success">Pembayaran Berhasil! Status Villa Confirm.</div>'
+            );
+        } else {
+            $this->session->set_flashdata(
+                'pesan',
+                '<div class="alert alert-danger">Gagal update data.</div>'
+            );
+        }
+        redirect('user/dashboard/riwayat');
+    }
+
+    public function riwayat()
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $penyewa_id = $this->session->userdata('penyewa_id');
         $data['pesanan'] = $this->Villa_model->get_pesanan_by_penyewa($penyewa_id);
         $this->load->view('user/dashboard/riwayat', $data);
         $this->load->view('user/temp/footer');
     }
-    public function detail($id) {
+    public function detail($id)
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
-    
+
         $data['villa'] = $this->Villa_model->get_by_id($id);
-        
+
         if (empty($data['villa'])) {
             show_404();
         }
         $deskripsi_target = $data['villa']['deskripsi'];
-    
+
         $kandidat_villa = $this->Villa_model->get_all_except($id);
-        
+
         $rekomendasi = [];
-    
+
         foreach ($kandidat_villa as $item) {
             $deskripsi_banding = $item['deskripsi'];
-            
+
             $skor = $this->_hitung_cosine($deskripsi_target, $deskripsi_banding);
-            
+
             $item['nilai_kemiripan'] = $skor;
             $rekomendasi[] = $item;
         }
-    
-        usort($rekomendasi, function($a, $b) {
+
+        usort($rekomendasi, function ($a, $b) {
             return $b['nilai_kemiripan'] <=> $a['nilai_kemiripan'];
         });
-    
+
         $data['rekomendasi_villa'] = array_slice($rekomendasi, 0, 4);
         $this->load->view('villa/detail', $data);
         $this->load->view('user/temp/footer');
     }
-    
-    private function _hitung_cosine($teks1, $teks2) {
+
+    private function _hitung_cosine($teks1, $teks2)
+    {
         $clean1 = strtolower(preg_replace("/[^a-zA-Z0-9\s]/", "", $teks1));
         $clean2 = strtolower(preg_replace("/[^a-zA-Z0-9\s]/", "", $teks2));
-    
+
         $arr1 = explode(" ", $clean1);
         $arr2 = explode(" ", $clean2);
-    
+
         $arr1 = array_filter($arr1);
         $arr2 = array_filter($arr2);
-    
+
         $kata_sama = 0;
-        
+
         $unique1 = array_unique($arr1);
         $unique2 = array_unique($arr2);
-    
+
         foreach ($unique2 as $kata) {
             if (in_array($kata, $unique1)) {
                 $kata_sama++;
             }
         }
-    
+
         $jumlah_a = count($arr1);
         $jumlah_b = count($arr2);
-    
+
         if ($jumlah_a == 0 || $jumlah_b == 0) {
             return 0;
         }
-    
+
         $akar_ab = sqrt($jumlah_a * $jumlah_b);
         return $kata_sama / $akar_ab;
     }
-    public function detail_pesanan($id_pesanan){
+    public function detail_pesanan($id_pesanan)
+    {
         if (!$this->session->userdata('penyewa_nama')) {
             redirect('index/lp1');
-            exit; 
+            exit;
         }
         $data['detail'] = $this->Villa_model->get_detail_pesanan($id_pesanan);
-        
+
         $this->load->view('villa/riwayat', $data);
         $this->load->view('user/temp/footer');
     }
-    public function batalkan_pesanan(){
+    public function batalkan_pesanan()
+    {
         $id_pemesanan = $this->input->post('id_pesanan');
 
         if ($id_pemesanan) {
@@ -176,14 +207,15 @@ class Dashboard extends CI_Controller {
         }
         redirect('user/dashboard/riwayat');
     }
-    public function form_pesan($id_villa) {
+    public function form_pesan($id_villa)
+    {
         if (!$this->session->userdata('penyewa_id')) {
             redirect('index/lp1');
             return;
         }
 
         $data['villa'] = $this->Villa_model->get_villa_by_id($id_villa);
-        $data['user']  = $this->User_model->get_penyewa(
+        $data['user'] = $this->User_model->get_penyewa(
             $this->session->userdata('penyewa_id')
         );
 
@@ -191,13 +223,14 @@ class Dashboard extends CI_Controller {
         $this->load->view('user/temp/footer');
     }
 
-    public function proses_bayar() {
+    public function proses_bayar()
+    {
         // Tangkap data input
-        $id_villa      = $this->input->post('id_villa');
-        $harga         = (int)$this->input->post('harga_villa');
-        $tgl_in        = $this->input->post('tgl_check_in');
-        $tgl_out       = $this->input->post('tgl_check_out');
-        $id_penyewa    = $this->session->userdata('penyewa_id');
+        $id_villa = $this->input->post('id_villa');
+        $harga = (int) $this->input->post('harga_villa');
+        $tgl_in = $this->input->post('tgl_check_in');
+        $tgl_out = $this->input->post('tgl_check_out');
+        $id_penyewa = $this->session->userdata('penyewa_id');
 
         // Hitung durasi dan harga
         $hari = ceil((strtotime($tgl_out) - strtotime($tgl_in)) / 86400);
@@ -207,25 +240,26 @@ class Dashboard extends CI_Controller {
         }
 
         $biaya_layanan = 0.15;
-        $total_layanan   = ($harga * $hari) * $biaya_layanan;
-        $total_harga   = ($harga * $hari)+$total_layanan ;
-        $id_mitra      = $this->Villa_model->get_mitra_by_villa($id_villa);
+        $total_layanan = ($harga * $hari) * $biaya_layanan;
+        $total_harga = ($harga * $hari) + $total_layanan;
+        $id_mitra = $this->Villa_model->get_mitra_by_villa($id_villa);
 
         // Data array untuk dimasukkan ke database (TANPA metode_bayar)
         $data_insert = [
-            'id_penyewa'       => $id_penyewa,
-            'id_villa'         => $id_villa,
-            'id_mitra'         => $id_mitra,
-            'total_harga'      => $total_harga,
-            'tgl_check_in'     => $tgl_in,
-            'tgl_check_out'    => $tgl_out,
-            'tgl_pesanan'      => date('Y-m-d H:i:s'),
-            'status_pesanan'   => 'pending',
+            'id_penyewa' => $id_penyewa,
+            'id_villa' => $id_villa,
+            'id_mitra' => $id_mitra,
+            'total_harga' => $total_harga,
+            'tgl_check_in' => $tgl_in,
+            'tgl_check_out' => $tgl_out,
+            'tgl_pesanan' => date('Y-m-d H:i:s'),
+            'status_pesanan' => 'pending',
         ];
         $this->Villa_model->insert_pesanan($data_insert);
-        redirect('user/dashboard/riwayat/' );
+        redirect('user/dashboard/riwayat/');
     }
-    public function get_snap_token() {
+    public function get_snap_token()
+    {
         require_once APPPATH . 'libraries/Midtrans.php';
 
         \Midtrans\Config::$serverKey = 'Mid-server-KVz7O-BI2-9XQ6RY67tYe96U'; // Ganti dengan server key Midtrans Anda  tambah 

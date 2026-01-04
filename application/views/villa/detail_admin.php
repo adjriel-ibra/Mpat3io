@@ -133,6 +133,8 @@
 
         <form action="<?= base_url('admin/dashboard/update_action') ?>" method="POST" id="formUpdate">
             <input type="hidden" name="id_pesanan" value="<?= $detail->id_pesanan ?>">
+            
+            <input type="hidden" id="harga_per_malam" value="<?= $detail->harga ?>">
 
             <div class="card custom-card p-4">
                 <h5 class="fw-bold mb-1"><?= $detail->nama_villa ?></h5>
@@ -182,33 +184,98 @@
             <div class="card custom-card p-4 mb-3">
                 <h6 class="fw-bold mb-4 d-flex align-items-center gap-2"><i class="bi bi-credit-card-fill fs-5"></i>
                     Rincian Pembayaran</h6>
-                <div class="detail-row"><span
-                        class="detail-label text-muted">Rp.<?= number_format($detail->harga, 0, ',', '.') ?> × 1
-                        malam</span><span
-                        class="detail-value">Rp.<?= number_format($detail->harga, 0, ',', '.') ?></span></div>
-                <div class="detail-row"><span class="detail-label text-muted">Total Bayar</span><span
-                        class="detail-value">Rp.<?= number_format($detail->total_harga, 0, ',', '.') ?></span></div>
+                
+                <div class="detail-row">
+                    <span class="detail-label text-muted" id="label_subtotal">
+                        Rp.<?= number_format($detail->harga, 0, ',', '.') ?> × 0 malam
+                    </span>
+                    <span class="detail-value" id="val_subtotal">Rp.0</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label text-muted">Biaya Layanan (15%)</span>
+                    <span class="detail-value" id="val_layanan">Rp.0</span>
+                </div>
+
+                <hr>
+
+                <div class="detail-row">
+                    <span class="detail-label text-dark fw-bold">Total Bayar</span>
+                    <span class="detail-value fw-bold text-success fs-5" id="val_total">Rp.0</span>
+                </div>
             </div>
         </form>
     </main>
 
     <script>
-        // Logika Validasi Tanggal
+        // Ambil Elemen
         const cin = document.getElementById('checkin');
         const cout = document.getElementById('checkout');
+        const hargaPerMalam = parseFloat(document.getElementById('harga_per_malam').value);
+        
+        // Elemen untuk ditampilkan
+        const labelSubtotal = document.getElementById('label_subtotal');
+        const valSubtotal = document.getElementById('val_subtotal');
+        const valLayanan = document.getElementById('val_layanan');
+        const valTotal = document.getElementById('val_total');
 
-        function cekTanggal() {
+        // Formatter Rupiah
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        function hitungOtomatis() {
             if (cin.value && cout.value) {
-                if (new Date(cout.value) <= new Date(cin.value)) {
+                const dateIn = new Date(cin.value);
+                const dateOut = new Date(cout.value);
+
+                // Validasi Tanggal
+                if (dateOut <= dateIn) {
                     Swal.fire('Peringatan', 'Tanggal Check-out tidak boleh sebelum Check-in!', 'error');
-                    cout.value = '';
+                    cout.value = ''; // Reset tanggal out
+                    return;
                 }
+
+                // 1. Hitung Selisih Hari
+                const diffTime = Math.abs(dateOut - dateIn);
+                const hari = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                // 2. Rumus: Subtotal = Harga Villa * Hari
+                const subtotal = hargaPerMalam * hari;
+
+                // 3. Rumus: Layanan = 15% dari Subtotal
+                const biayaLayanan = subtotal * 0.15;
+
+                // 4. Rumus: Total Akhir
+                const totalAkhir = subtotal + biayaLayanan;
+
+                // Update Tampilan HTML
+                labelSubtotal.innerText = `Rp.${new Intl.NumberFormat('id-ID').format(hargaPerMalam)} × ${hari} malam`;
+                valSubtotal.innerText = formatRupiah(subtotal);
+                valLayanan.innerText = formatRupiah(biayaLayanan);
+                valTotal.innerText = formatRupiah(totalAkhir);
+
+            } else {
+                // Jika tanggal kosong
+                labelSubtotal.innerText = `Rp.${new Intl.NumberFormat('id-ID').format(hargaPerMalam)} × 0 malam`;
+                valSubtotal.innerText = formatRupiah(0);
+                valLayanan.innerText = formatRupiah(0);
+                valTotal.innerText = formatRupiah(0);
             }
         }
-        cin.addEventListener('change', cekTanggal);
-        cout.addEventListener('change', cekTanggal);
 
-        // Alert Notifikasi Flashdata (Sukses/Error)
+        // Jalankan saat input berubah
+        cin.addEventListener('change', hitungOtomatis);
+        cout.addEventListener('change', hitungOtomatis);
+
+        // Jalankan sekali saat halaman pertama kali dimuat (agar terisi data awal)
+        document.addEventListener("DOMContentLoaded", hitungOtomatis);
+
+        // Alert Notifikasi Flashdata
         <?php if ($this->session->flashdata('success')): ?>
             Swal.fire('Berhasil', '<?= $this->session->flashdata('success') ?>', 'success');
         <?php endif; ?>

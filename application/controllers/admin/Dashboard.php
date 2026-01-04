@@ -146,40 +146,46 @@ class Dashboard extends CI_Controller
     }
 
     public function update_villa()
-{
-    $id_villa = $this->input->post('id_villa');
-    $data = [
-        'nama_villa'   => $this->input->post('nama_villa'),
-        'harga'        => $this->input->post('harga'),
-        'deskripsi'    => $this->input->post('deskripsi'),
-        'status_villa' => $this->input->post('status_villa'),
-    ];
+    {
+        $id_villa = $this->input->post('id_villa');
+        $data = [
+            'nama_villa' => $this->input->post('nama_villa'),
+            'harga' => $this->input->post('harga'),
+            'deskripsi' => $this->input->post('deskripsi'),
+            'status_villa' => $this->input->post('status_villa'),
+        ];
 
-    if (!empty($_FILES['gambar']['name'])) {
+        if (!empty($_FILES['gambar']['name'])) {
 
-        $config['upload_path']   = FCPATH . 'asset/Uploads/';
-        $config['allowed_types'] = 'jpg|jpeg|png';
-        $config['max_size']      = 2048; // 2MB
-        $config['encrypt_name']  = TRUE; // nama file acak
+            $config['upload_path'] = FCPATH . 'asset/Uploads/';
+            $config['allowed_types'] = 'jpg|jpeg|png';
+            $config['max_size'] = 2048; // 2MB
+            $config['encrypt_name'] = TRUE; // nama file acak
 
-        $this->load->library('upload', $config);
+            $this->load->library('upload', $config);
 
-        if ($this->upload->do_upload('gambar')) {
-            // Jika upload berhasil:
-            $uploadData = $this->upload->data();
-            $data['gambar'] = 'asset/Uploads/' . $uploadData['file_name'];
-            
-        } else {
-            $this->session->set_flashdata(
-                'pesan_error',
-                $this->upload->display_errors()
-            );
-            redirect('admin/dashboard/edit/' . $id_villa); 
-            return;
+            if ($this->upload->do_upload('gambar')) {
+                // Jika upload berhasil:
+                $uploadData = $this->upload->data();
+                $data['gambar'] = 'asset/Uploads/' . $uploadData['file_name'];
+
+            } else {
+                $this->session->set_flashdata(
+                    'pesan_error',
+                    $this->upload->display_errors()
+                );
+                redirect('admin/dashboard/edit/' . $id_villa);
+                return;
+            }
         }
-    } 
-    $this->Villa_model->updateVilla($id_villa, $data);
+        $this->Villa_model->updateVilla($id_villa, $data);
 
-    redirect('admin/dashboard');
-}
+        redirect('admin/dashboard');
+    }
+    public function villa_delete($id_villa)
+    {
+        $this->Villa_model->delete_Villa($id_villa);
+        $this->session->set_flashdata('pesan_sukses', 'Data villa berhasil dihapus');
+        redirect('admin/dashboard');
+    }
 }

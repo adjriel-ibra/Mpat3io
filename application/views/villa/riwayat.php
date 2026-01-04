@@ -278,7 +278,7 @@
             .then(snapToken => {
                 snap.pay(snapToken, {
                     onSuccess: function () {
-                        window.location.href = "<?= base_url('user/dashboard/riwayat') ?>";
+                        window.location.href = "<?= base_url('user/dashboard/finish_payment/') . $detail->id_pesanan ?>";
                     },
                     onPending: function () {
                         Swal.fire("Menunggu Pembayaran", "Silakan selesaikan pembayaran Anda", "info");

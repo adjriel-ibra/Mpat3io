@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* --- CSS SAMA SEPERTI SEBELUMNYA --- */
+        /* CSS TETAP SAMA SEPERTI SEBELUMNYA */
         body {
             background-color: #f5f5f5;
             font-family: 'Inter', sans-serif;
@@ -107,12 +107,10 @@
             color: white;
         }
 
-        /* Tambahan styling untuk pesan error validasi agar terlihat jelas */
         .invalid-feedback {
             font-size: 0.85rem;
             margin-top: 5px;
         }
-
         .bottom-nav {
             background-color: white;
             position: fixed;
@@ -168,7 +166,7 @@
                 <div class="mb-3">
                     <input type="text" class="form-control custom-input" id="nama" name="nama" placeholder="Nama"
                         required>
-                    <div class="invalid-feedback">Nama fasilitas wajib diisi.</div>
+                    <div class="invalid-feedback" id="namaError">Nama fasilitas wajib diisi.</div>
                 </div>
 
                 <div class="mb-3">
@@ -202,7 +200,7 @@
                 <div class="mb-4">
                     <textarea class="form-control custom-input" id="deskripsi" name="deskripsi" rows="5"
                         placeholder="Rincian" required></textarea>
-                    <div class="invalid-feedback">Rincian/deskripsi wajib diisi.</div>
+                    <div class="invalid-feedback" id="deskripsiError">Rincian/deskripsi wajib diisi.</div>
                 </div>
 
                 <div class="d-flex justify-content-end">
@@ -217,37 +215,83 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('formFasilitas');
+
+            // Element Input
             const gambarInput = document.getElementById('gambar');
+            const namaInput = document.getElementById('nama');
+            const deskripsiInput = document.getElementById('deskripsi');
+
+            // Element Pesan Error
             const gambarError = document.getElementById('gambarError');
+            const namaError = document.getElementById('namaError');
+            const deskripsiError = document.getElementById('deskripsiError');
+
+            // Regex: Hanya Huruf, Angka, dan Spasi (termasuk enter/newline untuk textarea)
+            // ^ = awal string
+            // [a-zA-Z0-9\s] = boleh huruf besar/kecil, angka, dan spasi
+            // + = minimal satu karakter
+            // $ = akhir string
+            const noSymbolRegex = /^[a-zA-Z0-9\s]+$/;
 
             form.addEventListener('submit', function (event) {
                 let isValid = true;
 
-                // 1. Validasi Ukuran File (Custom JS)
+                // 1. VALIDASI GAMBAR (Size)
                 if (gambarInput.files.length > 0) {
-                    const fileSize = gambarInput.files[0].size / 1024 / 1024; // dalam MB
+                    const fileSize = gambarInput.files[0].size / 1024 / 1024;
                     if (fileSize > 2) {
-                        gambarInput.setCustomValidity('Ukuran file terlalu besar'); // Trigger invalid state
+                        gambarInput.setCustomValidity('Ukuran file terlalu besar');
                         gambarError.textContent = 'Ukuran file terlalu besar! Maksimal 2MB.';
                         isValid = false;
                     } else {
-                        gambarInput.setCustomValidity(''); // Reset validity
+                        gambarInput.setCustomValidity('');
                         gambarError.textContent = 'Wajib upload gambar (JPG/PNG).';
                     }
                 }
 
-                // 2. Validasi Bootstrap Default (Required, Min, Type, dll)
+                // 2. VALIDASI NAMA (Tidak boleh simbol)
+                if (namaInput.value.trim() !== "") {
+                    if (!noSymbolRegex.test(namaInput.value)) {
+                        namaInput.setCustomValidity('Invalid format');
+                        namaError.textContent = 'Nama tidak boleh mengandung simbol (hanya huruf, angka, dan spasi).';
+                        isValid = false;
+                    } else {
+                        namaInput.setCustomValidity('');
+                        namaError.textContent = 'Nama fasilitas wajib diisi.'; // Reset pesan default
+                    }
+                }
+
+                // 3. VALIDASI DESKRIPSI (Tidak boleh simbol)
+                if (deskripsiInput.value.trim() !== "") {
+                    if (!noSymbolRegex.test(deskripsiInput.value)) {
+                        deskripsiInput.setCustomValidity('Invalid format');
+                        deskripsiError.textContent = 'Deskripsi tidak boleh mengandung simbol (hanya huruf, angka, dan spasi).';
+                        isValid = false;
+                    } else {
+                        deskripsiInput.setCustomValidity('');
+                        deskripsiError.textContent = 'Rincian/deskripsi wajib diisi.'; // Reset pesan default
+                    }
+                }
+
+                // Cek Validitas Akhir
                 if (!form.checkValidity() || !isValid) {
                     event.preventDefault();
                     event.stopPropagation();
                 }
 
-                // Tambahkan class 'was-validated' agar Bootstrap menampilkan pesan error merah
                 form.classList.add('was-validated');
             }, false);
 
-            // Reset pesan error custom saat user mengganti file
-            gambarInput.addEventListener('change', function () {
+            // Reset Custom Validity saat user mengetik ulang
+            gambarInput.addEventListener('change', function () { this.setCustomValidity(''); });
+
+            namaInput.addEventListener('input', function () {
+                this.setCustomValidity('');
+                // Opsional: Jika ingin menghapus simbol secara otomatis saat mengetik, hilangkan komentar di bawah:
+                // this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, '');
+            });
+
+            deskripsiInput.addEventListener('input', function () {
                 this.setCustomValidity('');
             });
         });
