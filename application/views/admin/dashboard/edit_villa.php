@@ -153,7 +153,7 @@
                                 <label for="harga" class="form-label">Harga (Rp)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white text-secondary">Rp</span>
-                                    <input type="number" class="form-control" id="harga" name="harga" value="<?= $villa['harga']; ?>" required>
+                                    <input type="number" step="any" class="form-control" id="harga" name="harga" value="<?= $villa['harga']; ?>" required>
                                 </div>
                             </div>
 
