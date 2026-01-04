@@ -6,19 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Riwayat</title>
 
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts untuk Tulisan Script -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --bg-color: #ffe9d6;
-            /* Warna background peach sesuai gambar */
             --card-radius: 15px;
         }
 
@@ -26,7 +20,6 @@
             background-color: var(--bg-color);
             font-family: 'Poppins', sans-serif;
             padding-bottom: 80px;
-            /* Ruang untuk navbar bawah */
         }
 
         /* Header Image Styles */
@@ -36,7 +29,6 @@
             width: 100%;
             overflow: hidden;
             background-color: #333;
-            /* Fallback color */
         }
 
         .header-bg {
@@ -59,22 +51,6 @@
             align-items: center;
             color: white;
             text-align: center;
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: black;
-            text-decoration: none;
-            z-index: 10;
         }
 
         .header-title-script {
@@ -127,41 +103,6 @@
             text-align: right;
         }
 
-        /* Bottom Navbar */
-        .bottom-nav {
-            background: white;
-            border-top: 1px solid #eee;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 70px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
-            padding-bottom: 5px;
-        }
-
-        .nav-item-custom {
-            text-decoration: none;
-            color: #212529;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .nav-item-custom i {
-            font-size: 1.5rem;
-            margin-bottom: 2px;
-        }
-
-        .nav-item-custom.active {
-            color: #000;
-            font-weight: 700;
-        }
-
         .btn-bayar {
             background-color: #FF6B35;
             color: #fff;
@@ -173,12 +114,36 @@
 
 <body>
 
-    <!-- Header Section -->
-    <header class="header-image-container">
-        <!-- Image (Placeholder used, replace src with your actual image) -->
-        <img src="<?= base_url('asset/background/gambarvilla.png') ?>" alt="Camping Ground" class="header-bg">
+    <?php
+    // --- LOGIKA PERHITUNGAN HARGA ---
+    
+    // 1. Hitung durasi hari (Check-out - Check-in)
+    $tgl_in_obj  = new DateTime($detail->tgl_check_in);
+    $tgl_out_obj = new DateTime($detail->tgl_check_out);
+    $jarak_hari  = $tgl_in_obj->diff($tgl_out_obj);
+    $hari        = $jarak_hari->days;
 
-        <!-- Overlay Text -->
+    // Pastikan minimal 1 hari jika tanggal sama
+    if ($hari == 0) {
+        $hari = 1;
+    }
+
+    // 2. Ambil harga dasar
+    $harga_per_malam = $detail->harga;
+
+    // 3. Hitung Subtotal (Harga x Hari)
+    $subtotal_sewa = $harga_per_malam * $hari;
+
+    // 4. Hitung Biaya Layanan (15%)
+    $persen_layanan = 0.15;
+    $total_layanan  = $subtotal_sewa * $persen_layanan;
+
+    // 5. Hitung Total Akhir
+    $total_harga_akhir = $subtotal_sewa + $total_layanan;
+    ?>
+
+    <header class="header-image-container">
+        <img src="<?= base_url('asset/background/gambarvilla.png') ?>" alt="Camping Ground" class="header-bg">
         <div class="header-overlay">
             <h1 class="header-title-script">Villa & Camping Ground</h1>
             <p class="header-subtitle">MATABARA'NA PULAU KAMBUNONG</p>
@@ -187,7 +152,6 @@
 
     <main class="container py-5" style="margin-top: -20px; position: relative; z-index: 2;">
 
-        <!-- Property Info Card -->
         <div class="card custom-card p-4">
             <h5 class="fw-bold mb-1"><?= $detail->nama_villa ?></h5>
             <p class="text-muted small mb-4"><?= $detail->alamat ?></p>
@@ -207,7 +171,6 @@
             </div>
         </div>
 
-        <!-- Tenant Info Card -->
         <div class="card custom-card p-4">
             <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
                 <i class="bi bi-person-fill fs-5"></i> Infomasi Penyewa
@@ -227,27 +190,35 @@
             </div>
         </div>
 
-        <!-- Payment Info Card -->
         <div class="card custom-card p-4 mb-3">
             <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
                 <i class="bi bi-credit-card-fill fs-5"></i> Rincian Pembayaran
             </h6>
 
             <div class="detail-row">
-                <span class="detail-label text-muted">Rp.<?= number_format($detail->harga, 0, ',', '.') ?> × 1
-                    malam</span>
-                <span class="detail-value">Rp.<?= number_format($detail->harga, 0, ',', '.') ?></span>
+                <span class="detail-label text-muted">
+                    Rp.<?= number_format($harga_per_malam, 0, ',', '.') ?> × <?= $hari ?> malam
+                </span>
+                <span class="detail-value">
+                    Rp.<?= number_format($subtotal_sewa, 0, ',', '.') ?>
+                </span>
             </div>
+
             <div class="detail-row">
-                <span class="detail-label text-muted">Biaya Layanan</span>
-                <!-- SOON -->
-                <span class="detail-value">Rp150.000</span>
+                <span class="detail-label text-muted">Biaya Layanan (15%)</span>
+                <span class="detail-value">
+                    Rp.<?= number_format($total_layanan, 0, ',', '.') ?>
+                </span>
             </div>
+
             <div class="detail-row">
-                <span class="detail-label text-muted">Total Bayar</span>
-                <span class="detail-value">Rp.<?= number_format($detail->total_harga, 0, ',', '.') ?></span>
+                <span class="detail-label text-dark fw-bold">Total Bayar</span>
+                <span class="detail-value fw-bold text-success">
+                    Rp.<?= number_format($total_harga_akhir, 0, ',', '.') ?>
+                </span>
             </div>
         </div>
+
         <div class="d-flex justify-content-end gap-2 mt-4 mb-5 pb-5">
 
             <form id="formBatal" action="<?= base_url('user/dashboard/batalkan_pesanan') ?>" method="POST">
@@ -256,26 +227,25 @@
                     Batalkan Pesanan
                 </button>
             </form>
-            <?php
-            $isPending = $detail->status_pesanan === 'pending';
-            ?>
+
+            <?php $isPending = $detail->status_pesanan === 'pending'; ?>
 
             <button type="button" class="btn btn-bayar rounded-pill px-4 <?= !$isPending ? 'disabled' : '' ?>"
                 id="btnBayar" <?= !$isPending ? 'disabled' : '' ?>>
                 Bayar Secara Online
             </button>
-
-
         </div>
 
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key=""></script> <!-- Ganti dengan client key Midtrans Anda Mid-client-mDmBC0zQYFUZsnrt-->
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-mDmBC0zQYFUZsnrt"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const GROSS_AMOUNT = <?= (int) $detail->total_harga ?>;
+        // MENGGUNAKAN NILAI HASIL PERHITUNGAN PHP
+        const GROSS_AMOUNT = <?= (int) $total_harga_akhir ?>;
+
         function konfirmasiBatal() {
             Swal.fire({
                 title: 'Batalkan Pesanan?',
@@ -292,9 +262,11 @@
                 }
             })
         }
+
         document.getElementById('btnBayar').addEventListener('click', function (e) {
             e.preventDefault();
 
+            // Kirim gross_amount hasil hitungan baru ke controller
             fetch("<?= site_url('user/dashboard/get_snap_token') ?>", {
                 method: "POST",
                 headers: {
@@ -302,28 +274,27 @@
                 },
                 body: "gross_amount=" + GROSS_AMOUNT
             })
-                .then(response => response.text())
-                .then(snapToken => {
-                    snap.pay(snapToken, {
-                        onSuccess: function () {
-                            window.location.href = "<?= base_url('user/dashboard/riwayat') ?>";
-                        },
-                        onPending: function () {
-                            Swal.fire("Menunggu Pembayaran", "Silakan selesaikan pembayaran Anda", "info");
-                        },
-                        onError: function () {
-                            Swal.fire("Gagal", "Terjadi kesalahan pembayaran", "error");
-                        },
-                        onClose: function () {
-                            Swal.fire("Dibatalkan", "Pembayaran dibatalkan", "warning");
-                        }
-                    });
-                })
-                .catch(() => {
-                    Swal.fire("Error", "Gagal mendapatkan Snap Token", "error");
+            .then(response => response.text())
+            .then(snapToken => {
+                snap.pay(snapToken, {
+                    onSuccess: function () {
+                        window.location.href = "<?= base_url('user/dashboard/riwayat') ?>";
+                    },
+                    onPending: function () {
+                        Swal.fire("Menunggu Pembayaran", "Silakan selesaikan pembayaran Anda", "info");
+                    },
+                    onError: function () {
+                        Swal.fire("Gagal", "Terjadi kesalahan pembayaran", "error");
+                    },
+                    onClose: function () {
+                        Swal.fire("Dibatalkan", "Pembayaran dibatalkan", "warning");
+                    }
                 });
+            })
+            .catch(() => {
+                Swal.fire("Error", "Gagal mendapatkan Snap Token", "error");
+            });
         });
     </script>
 </body>
-
 </html>

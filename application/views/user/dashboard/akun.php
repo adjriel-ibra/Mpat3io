@@ -162,8 +162,8 @@
                 <i class="bi bi-camera"></i>
             </div>
             <div class="profile-details">
-                <h5><?=$username = $this->session->userdata('penyewa_nama');?></h5>
-                <a href="#">LIHAT PROFIL SAYA</a>
+                <h5><?=$username = $penyewa->nama_penyewa;?></h5>
+                <a href="<?= base_url('user/dashboard/detail_akun'); ?>">LIHAT PROFIL SAYA</a>
             </div>
         </div>
 

@@ -99,7 +99,7 @@ class Dashboard extends CI_Controller
 
         if (!empty($_FILES['gambar']['name'])) {
 
-            $config['upload_path'] = FCPATH . 'asset/Uploads/';
+            $config['upload_path'] = 'asset/Uploads/';
             $config['allowed_types'] = 'jpg|jpeg|png';
             $config['max_size'] = 2048; // 2MB
             $config['encrypt_name'] = TRUE; // nama file acak (aman)
@@ -110,6 +110,7 @@ class Dashboard extends CI_Controller
                 $this->session->set_flashdata(
                     'pesan_error',
                     $this->upload->display_errors()
+                    // The upload path does not appear to be valid.
                 );
                 redirect('admin/dashboard/tambah');
                 return;

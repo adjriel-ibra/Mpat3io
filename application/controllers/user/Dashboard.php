@@ -13,8 +13,31 @@ class Dashboard extends CI_Controller {
             redirect('index/lp1');
             exit; 
         }
-        $this->load->view('user/dashboard/akun');
+        $id = $this->session->userdata('penyewa_id');
+        $data['penyewa'] = $this->Villa_model->get_penyewa_by_id($id);
+        $this->load->view('user/dashboard/akun',$data);
         $this->load->view('user/temp/footer');
+        
+    }
+    public function detail_akun(){
+        $id = $this->session->userdata('penyewa_id');
+        $data['penyewa'] = $this->Villa_model->get_penyewa_by_id($id);
+        $this->load->view('user/dashboard/detail_akun', $data);
+        $this->load->view('user/temp/footer');
+    }
+    public function update_profil()
+    {
+        $id = $this->session->userdata('penyewa_id');
+        $data = [
+            'nama_penyewa' => $this->input->post('nama', true),
+            'email_penyewa' => $this->input->post('email', true),
+            'no_telp' => $this->input->post('telp', true),
+        ];
+
+        $this->Villa_model->update_penyewa($id, $data);
+
+        $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Profil berhasil diperbarui!</div>');
+        redirect('user/dashboard/akun');
     }
     public function faq(){
         if (!$this->session->userdata('penyewa_nama')) {
@@ -183,8 +206,9 @@ class Dashboard extends CI_Controller {
             return;
         }
 
-        $biaya_layanan = 100000;
-        $total_harga   = ($harga * $hari) + $biaya_layanan;
+        $biaya_layanan = 0.15;
+        $total_layanan   = ($harga * $hari) * $biaya_layanan;
+        $total_harga   = ($harga * $hari)+$total_layanan ;
         $id_mitra      = $this->Villa_model->get_mitra_by_villa($id_villa);
 
         // Data array untuk dimasukkan ke database (TANPA metode_bayar)
@@ -204,7 +228,7 @@ class Dashboard extends CI_Controller {
     public function get_snap_token() {
         require_once APPPATH . 'libraries/Midtrans.php';
 
-        $serverKey = ''; // Ganti dengan server key Midtrans Anda Mid-server-KVz7O-BI2-9XQ6RY67tYe96U tambah \Midtrans\Config::
+        \Midtrans\Config::$serverKey = 'Mid-server-KVz7O-BI2-9XQ6RY67tYe96U'; // Ganti dengan server key Midtrans Anda  tambah 
         \Midtrans\Config::$isProduction = false;
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;

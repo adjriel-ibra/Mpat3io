@@ -12,12 +12,19 @@ class Villa_model extends CI_Model {
     public function get_mitra_by_id($id) {
         return $this->db->where('id_mitra',$id)->get('mitra')->row();
     }
+    public function get_penyewa_by_id($id) {
+        return $this->db->where('id_penyewa',$id)->get('penyewa')->row();
+    }
     public function get_villa_by_mitra($id) {
         return $this->db->where('id_mitra',$id)->get('villa')->result_array();
     }
     public function update_mitra($id, $data) {
         $this->db->where('id_mitra', $id);
         return $this->db->update('mitra', $data);
+    }
+    public function update_penyewa($id, $data) {
+        $this->db->where('id_penyewa', $id);
+        return $this->db->update('penyewa', $data);
     }
     public function insert_villa($data){
         return $this->db->insert('villa', $data);
