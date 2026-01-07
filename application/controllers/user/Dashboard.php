@@ -225,38 +225,55 @@ class Dashboard extends CI_Controller
 
     public function proses_bayar()
     {
-        // Tangkap data input
         $id_villa = $this->input->post('id_villa');
         $harga = (int) $this->input->post('harga_villa');
         $tgl_in = $this->input->post('tgl_check_in');
         $tgl_out = $this->input->post('tgl_check_out');
         $id_penyewa = $this->session->userdata('penyewa_id');
 
-        // Hitung durasi dan harga
+        // VALIDASI TANGGAL
         $hari = ceil((strtotime($tgl_out) - strtotime($tgl_in)) / 86400);
         if ($hari <= 0) {
-            echo "<script>alert('Tanggal tidak valid'); window.history.back();</script>";
+            $this->session->set_flashdata('swal_error', [
+                'title' => 'Tanggal Tidak Valid',
+                'text' => 'Tanggal check-out harus setelah check-in.'
+            ]);
+            redirect('user/dashboard/form_pesan/' . $id_villa);
             return;
         }
 
-        $biaya_layanan = 0.15;
-        $total_layanan = ($harga * $hari) * $biaya_layanan;
-        $total_harga = ($harga * $hari) + $total_layanan;
-        $id_mitra = $this->Villa_model->get_mitra_by_villa($id_villa);
+        $cek = $this->Villa_model->cek_ketersediaan($id_villa, $tgl_in, $tgl_out);
 
-        // Data array untuk dimasukkan ke database (TANPA metode_bayar)
-        $data_insert = [
-            'id_penyewa' => $id_penyewa,
-            'id_villa' => $id_villa,
-            'id_mitra' => $id_mitra,
-            'total_harga' => $total_harga,
-            'tgl_check_in' => $tgl_in,
-            'tgl_check_out' => $tgl_out,
-            'tgl_pesanan' => date('Y-m-d H:i:s'),
-            'status_pesanan' => 'pending',
-        ];
-        $this->Villa_model->insert_pesanan($data_insert);
-        redirect('user/dashboard/riwayat/');
+        if ($cek > 0) {
+            $this->session->set_flashdata('swal_error', [
+                'title' => 'Villa Tidak Tersedia',
+                'text' => 'Villa sudah dibooking pada tanggal tersebut. Silakan pilih tanggal lain.'
+            ]);
+            redirect('user/dashboard/form_pesan/' . $id_villa);
+            return;
+        } else {
+            $biaya_layanan = 0.15;
+            $subtotal = $harga * $hari;
+            $total_layanan = $subtotal * $biaya_layanan;
+            $total_harga = $subtotal + $total_layanan;
+
+            $id_mitra = $this->Villa_model->get_mitra_by_villa($id_villa);
+
+            // INSERT PESANAN
+            $data_insert = [
+                'id_penyewa' => $id_penyewa,
+                'id_villa' => $id_villa,
+                'id_mitra' => $id_mitra,
+                'total_harga' => $total_harga,
+                'tgl_check_in' => $tgl_in,
+                'tgl_check_out' => $tgl_out,
+                'tgl_pesanan' => date('Y-m-d H:i:s'),
+                'status_pesanan' => 'pending',
+            ];
+
+            $this->Villa_model->insert_pesanan($data_insert);
+            redirect('user/dashboard/riwayat/');
+        }
     }
     public function get_snap_token()
     {

@@ -54,15 +54,6 @@ class Villa_model extends CI_Model
 
         return $this->db->get()->row_array();
     }
-    public function get_by_mitra($id_mitra)
-    {
-        $this->db->select('*');
-        $this->db->from('villa');
-        $this->db->join('mitra', 'mitra.id_mitra = villa.id_mitra');
-        $this->db->where('villa.id_mitra', $id_mitra);
-
-        return $this->db->get()->result_array();
-    }
     public function get_pesanan_by_penyewa($penyewa_id)
     {
         $this->db->select('pesanan.*, villa.nama_villa, villa.gambar, mitra.nama_mitra');
@@ -150,6 +141,17 @@ class Villa_model extends CI_Model
     {
         $this->db->where('id_villa', $id_villa);
         return $this->db->update('villa', $data);
+    }
+    public function cek_ketersediaan($id_villa, $check_in, $check_out)
+    {
+        $this->db->where('id_villa', $id_villa);
+        $this->db->where('status_pesanan !=', 'batal');
+
+        // LOGIKA OVERLAP TANGGAL
+        $this->db->where('tgl_check_in <', $check_out);
+        $this->db->where('tgl_check_out >', $check_in);
+
+        return $this->db->get('pesanan')->num_rows();
     }
 }
 ?>
